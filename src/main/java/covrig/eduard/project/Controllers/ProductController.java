@@ -24,8 +24,9 @@ public class ProductController {
     final private ProductService productService;
     final private UserInteractionService interactionService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, UserInteractionService interactionService) {
         this.productService = productService;
+        this.interactionService = interactionService;
     }
     //OPERATII DE GET
 

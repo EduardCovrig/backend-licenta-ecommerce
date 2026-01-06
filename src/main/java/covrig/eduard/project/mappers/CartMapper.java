@@ -23,7 +23,9 @@ public abstract class CartMapper {
     @Mapping(source = "product.id", target = "productId")
     @Mapping(source = "product.name", target = "productName")
     @Mapping(source = "product.unitOfMeasure", target = "productUnit")
+    // Mapam prețul mediu per unitate (poate fi mixt daca lotul redus nu acopera toata cantitatea)
     @Mapping(target = "pricePerUnit", expression = "java(calculateEffectivePrice(item))")
+    //calcul subtotal folosind logica de loturi FIFO
     @Mapping(target = "subTotal", expression = "java(calculateSubTotal(item))")
    public abstract CartItemResponseDTO toItemDto(CartItem item);
     //metoda asta se foloseste automat de catre spring in toDto de mai sus ca sa transforme fiecare cartItem in CartItemResponseDTO
@@ -32,10 +34,12 @@ public abstract class CartMapper {
 
 
 
-    //metodele pentru calculele din expresii
+    //-- metodele pentru calculele din expresii --
+
+
     public Double calculateSubTotal(CartItem item) {
         if (item.getProduct() == null) return 0d;
-        return item.getProduct().getPrice() * item.getQuantity();
+        return productService.calculateSubtotalForQuantity(item.getProduct(), item.getQuantity());
     }
 
     protected Double calculateEffectivePrice(CartItem item) {
