@@ -15,11 +15,16 @@ public class ProductResponseDTO {
     private Long id;
     private String name;
 
-    private Double price;
+    private Double price; //pretul de baza
     private Integer stockQuantity;
     private String unitOfMeasure;
     private LocalDate expirationDate;
 
     private String brandName; //Product.brand.name
     private String categoryName; //Product.category.name
+
+    private Double currentPrice;       // Pretul final dupa aplicarea discountului dinamic
+    private Double discountValue;      // Valoarea discountului calculat
+    private String discountType;       // Tipul (PERCENT, FIXED sau DYNAMIC_AUTO)
+    private Boolean hasActiveDiscount; // Flag pentru afisare badge-uri în frontend
 }

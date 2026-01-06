@@ -33,6 +33,10 @@ public class Product {
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity;
 
+    //cantitatea care urmeaza sa expire
+    @Column(name = "near_expiry_quantity", nullable = false)
+    private Integer nearExpiryQuantity = 0;
+
     // Unitatea de măsura (ex: 'kg', 'buc')
     @Column(name = "unit_of_measure", nullable = false)
     private String unitOfMeasure;

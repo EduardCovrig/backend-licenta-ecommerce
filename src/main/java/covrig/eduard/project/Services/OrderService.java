@@ -21,14 +21,16 @@ public class OrderService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final OrderMapper orderMapper;
+    private final ProductService productService;
 
-    public OrderService(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository, UserRepository userRepository, AddressRepository addressRepository, OrderMapper orderMapper) {
+    public OrderService(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository, UserRepository userRepository, AddressRepository addressRepository, OrderMapper orderMapper, ProductService productService) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
         this.orderMapper = orderMapper;
+        this.productService = productService;
     }
 
     //1. PLACE ORDER
@@ -41,7 +43,6 @@ public class OrderService {
         if (cart.getItems().isEmpty()) {
             throw new RuntimeException("Cosul este gol. Nu poti plasa o comanda.");
         }
-
         Address address = addressRepository.findById(orderDTO.getAddressId()) //verifica daca are o adresa utilizaotrul
                 .orElseThrow(() -> new RuntimeException("Adresa invalida"));
 
@@ -59,23 +60,31 @@ public class OrderService {
         //adaugam produsele din cos in comanda
         order.setItems(new ArrayList<>());
         double totalOrderPrice = 0d;
-        for(CartItem cartItem : cart.getItems())
-        {
-            Product product=cartItem.getProduct();
-            // VERIFICARE STOC FINALA
-            if(product.getStockQuantity()<cartItem.getQuantity())
-                throw new RuntimeException("Stocul este insuficient pentru: " + product.getName());
-            //daca stocul e ok, ajungem aici si scadem stocul de pe site.
-            product.setStockQuantity((product.getStockQuantity()-cartItem.getQuantity()));
+        for (CartItem cartItem : cart.getItems()) {
+            Product product = cartItem.getProduct();
+            int qtyToBuy = cartItem.getQuantity();
+
+            if (product.getStockQuantity() < qtyToBuy) {
+                throw new RuntimeException("Stoc insuficient pentru: " + product.getName());
+            }
+
+            //CALCUL PREȚ DINAMIC PE LOTURI
+            Double itemSubtotal = productService.calculateSubtotalForQuantity(product, qtyToBuy);
+            Double effectiveUnitPrice = itemSubtotal / qtyToBuy; // Preț mediu per unitate
+
+            // --- ACTUALIZARE STOCURI (Prioritizam lotul care expira)
+            int takenFromNearExpiry = Math.min(qtyToBuy, product.getNearExpiryQuantity());
+            product.setNearExpiryQuantity(product.getNearExpiryQuantity() - takenFromNearExpiry);
+            product.setStockQuantity(product.getStockQuantity() - qtyToBuy);
             productRepository.save(product);
 
-            //transformare in ORDER ITEM (CART ITEM -> ORDER ITEM)
-            OrderItem orderItem=orderMapper.cartItemToOrderItem(cartItem);
+            // Creare OrderItem
+            OrderItem orderItem = orderMapper.cartItemToOrderItem(cartItem);
             orderItem.setOrder(order);
+            orderItem.setPrice(effectiveUnitPrice); // Salvam pretul mediu platit
+            orderItem.setBasePrice(product.getPrice());
 
-            //pret final
-            orderItem.setPrice(product.getPrice());
-            totalOrderPrice += orderItem.getPrice() * orderItem.getQuantity();
+            totalOrderPrice += itemSubtotal;
             order.getItems().add(orderItem);
         }
         //dupa ce trece prin fiecare item
