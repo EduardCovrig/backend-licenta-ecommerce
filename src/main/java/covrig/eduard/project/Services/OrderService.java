@@ -60,6 +60,16 @@ public class OrderService {
         order.setUser(user);
         order.setCreatedAt(Instant.now());
         order.setStatus("CONFIRMED");
+        try {
+            if (orderDTO.getPaymentMethod() != null) {
+                // Convertim string-ul din DTO ("CARD") în Enum (PaymentMethod.CARD)
+                order.setPaymentMethod(PaymentMethod.valueOf(orderDTO.getPaymentMethod().toUpperCase()));
+            } else {
+                order.setPaymentMethod(PaymentMethod.CASH);
+            }
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Metoda de plată invalida. Folosește CASH sau CARD.");
+        }
 
         //adaugam produsele din cos in comanda
         order.setItems(new ArrayList<>());
