@@ -27,12 +27,10 @@ public class AddressService {
 
     // READ
     @Transactional(readOnly = true)
-    public List<AddressResponseDTO> getUserAddresses(Long userId)
+    public List<AddressResponseDTO> getMyAddresses(String email)
     {
-        if(!userRepository.existsById(userId))
-            throw new RuntimeException("Nu exista utilizatorul cu id-ul: "+ userId + ".");
-        List<Address> addresses=addressRepository.findAllByUserId(userId);
-        return addressMapper.toDtoList(addresses);
+        User user = userRepository.findByEmail(email).orElseThrow();
+        return addressMapper.toDtoList(addressRepository.findAllByUserId(user.getId()));
     }
     @Transactional(readOnly=true)
     public AddressResponseDTO getAddressById(Long id)
@@ -43,23 +41,26 @@ public class AddressService {
     }
 
     // CREATE
-    public AddressResponseDTO createAddress(AddressCreationDTO dto)
+    public AddressResponseDTO createAddress(String email,AddressCreationDTO dto)
     {
-        User user=userRepository.findById(dto.getUserId()).orElseThrow(() ->
-                new RuntimeException("Nu exista utilizatorul cu id-ul: "+ dto.getUserId() + "."));
-        //deselectare fosta adresa default daca noua adresa e setata ca default
+        User user = userRepository.findByEmail(email).orElseThrow();
+
         if(Boolean.TRUE.equals(dto.getIsDefaultDelivery()))
-            unsetOldDefaultAddress(user.getId());
-        Address addressToSave= addressMapper.toEntity(dto);
-        addressToSave.setUser(user);
-        return addressMapper.toDto(addressRepository.save(addressToSave));
+            unsetOldDefaultAddress(user.getId()); //deselectare fosta adresa default
+
+        Address address = addressMapper.toEntity(dto);
+        address.setUser(user);
+        return addressMapper.toDto(addressRepository.save(address));
     }
     // UPDATE
-    public AddressResponseDTO updateAddress(Long id,AddressCreationDTO dto)
+    public AddressResponseDTO updateAddress(Long id,String email, AddressCreationDTO dto)
     {
         Address address=addressRepository.findById(id).orElseThrow(() ->
             new RuntimeException("Adresa cu id-ul "+ id + " nu a fost gasita.")
         );
+        if (!address.getUser().getEmail().equals(email)) {
+            throw new RuntimeException("Nu aveti permisiunea de a modifica aceasta adresa.");
+        }
         if(Boolean.TRUE.equals(dto.getIsDefaultDelivery()))
             unsetOldDefaultAddress(address.getUser().getId());
 
@@ -74,11 +75,16 @@ public class AddressService {
     }
 
     //DELETE
-    public AddressResponseDTO deleteAddress(Long id)
+    public AddressResponseDTO deleteAddress(Long id, String email)
     {
         Address address=addressRepository.findById(id).orElseThrow(() ->
                 new RuntimeException("Nu s-a gasit adresa cu id-ul "+ id + "."));
+        if (!address.getUser().getEmail().equals(email)) {
+            throw new RuntimeException("Nu aveți permisiunea de a șterge această adresă.");
+        }// ownership check
         addressRepository.delete(address);
+
+
         return addressMapper.toDto(address);
     }
 
