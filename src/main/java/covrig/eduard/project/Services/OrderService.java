@@ -68,7 +68,7 @@ public class OrderService {
                 order.setPaymentMethod(PaymentMethod.CASH);
             }
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Metoda de plată invalida. Folosește CASH sau CARD.");
+            throw new RuntimeException("Metoda de plata invalida. Foloseste CASH sau CARD.");
         }
 
         //adaugam produsele din cos in comanda
