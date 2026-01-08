@@ -25,8 +25,12 @@ public class Order {
     @Column(name = "total_price", nullable = false)
     private Double totalPrice;
 
-    /*@Column(name = "payment_method")
-    private String paymentMethod; */ //poate adaug ulterior asta, dar schimba baza de date, diagrama din licenta, tot.
+    @Column(name = "payment_method")
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
+    @Column(name = "promo_code")
+    private String promoCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

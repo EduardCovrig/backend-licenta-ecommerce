@@ -3,6 +3,7 @@ package covrig.eduard.project.Services;
 import covrig.eduard.project.Models.Role;
 import covrig.eduard.project.Models.User;
 import covrig.eduard.project.Repositories.UserRepository;
+import covrig.eduard.project.dtos.user.UserProfileUpdateDTO;
 import covrig.eduard.project.dtos.user.UserRegistrationDTO;
 import covrig.eduard.project.dtos.user.UserResponseDTO;
 import covrig.eduard.project.mappers.UserMapper;
@@ -32,12 +33,37 @@ public class UserService {
     {
         return userMapper.toDtoList(userRepository.findAll());
     }
+
+
     @Transactional(readOnly=true)
     public UserResponseDTO getUserById(Long id)
     {
         User user=userRepository.findById(id).orElseThrow(() -> new RuntimeException("Nu exista user cu id " + id));
         return userMapper.toDto(user);
     }
+
+    @Transactional(readOnly = true)
+    public UserResponseDTO getProfile(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilizatorul nu a fost gasit."));
+        return userMapper.toDto(user);
+    }
+
+    public UserResponseDTO updateProfile(String email, UserProfileUpdateDTO dto)
+    {
+        User user=userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Utilizatorul nu a fost gasit."));
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+
+        if (dto.getPhoneNumber() != null && !dto.getPhoneNumber().isBlank()) { //doar daca e, pt ca nu are notblank in dto
+            user.setPhoneNumber(dto.getPhoneNumber());
+        }
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) { //doar daca e, pt ca nu are notblank in dto
+            user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+        }
+        return userMapper.toDto(userRepository.save(user));
+    }
+
 
     //CREATE
     public UserResponseDTO createUser(UserRegistrationDTO userRegistrationDTO)

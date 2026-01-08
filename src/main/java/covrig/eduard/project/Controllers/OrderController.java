@@ -21,15 +21,26 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    // 1. PLASARE comanda
     @PostMapping
     public ResponseEntity<OrderResponseDTO> placeOrder(Authentication authentication, @RequestBody @Valid PlaceOrderDTO dto)
     {
-        OrderResponseDTO order=orderService.placeOrder(authentication.getName(),dto);
+        OrderResponseDTO order = orderService.placeOrder(authentication.getName(), dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
+
+    // 2. ISTORIC COMENZI
     @GetMapping
     public ResponseEntity<List<OrderResponseDTO>> getMyOrders(Authentication authentication)
     {
         return ResponseEntity.ok(orderService.getUserOrders(authentication.getName()));
+    }
+
+    // 3. DETALII O COMANDA dupa id
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponseDTO> getOrderById(@PathVariable Long id, Authentication authentication)
+    {
+        // Verificarea de securitate are loc in service
+        return ResponseEntity.ok(orderService.getOrderById(id, authentication.getName()));
     }
 }

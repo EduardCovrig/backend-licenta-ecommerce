@@ -12,4 +12,6 @@ public class PlaceOrderDTO {
     @NotNull(message = "Adresa de livrare este obligatorie.")
     private Long addressId;
 
+    private String paymentMethod; // Trimis ca string din frontend ("CASH" sau "CARD")
+    private String promoCode; //optional
 }

@@ -15,6 +15,9 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "updated_at")
+    private java.time.Instant updatedAt; //pt cron job stergere automata dupa 24h.
+
     // Relatie 1:1 cu User (un cos unic per utilizator)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true)
@@ -23,4 +26,6 @@ public class Cart {
     // Conținutul coșului
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items;
+
+
 }

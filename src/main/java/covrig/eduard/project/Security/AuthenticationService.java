@@ -2,6 +2,7 @@ package covrig.eduard.project.Security;
 
 
 import covrig.eduard.project.Repositories.UserRepository;
+import covrig.eduard.project.Services.NotificationService;
 import covrig.eduard.project.Services.UserService;
 import covrig.eduard.project.dtos.auth.AuthenticationRequest;
 import covrig.eduard.project.dtos.auth.AuthenticationResponse;
@@ -11,18 +12,22 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.management.Notification;
+
 @Service
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserService userService; //pentru a refolosi logica de creare user, atat.
+    private final NotificationService notificationService;
 
-    public AuthenticationService(UserRepository userRepository, JwtService jwtService, AuthenticationManager authenticationManager, UserService userService) {
+    public AuthenticationService(UserRepository userRepository, JwtService jwtService, AuthenticationManager authenticationManager, UserService userService, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.userService = userService;
+        this.notificationService = notificationService;
     }
 
     //1. METODA DE REGISTER (CREEAZA USER-UL SI RETURNEAZA TOKEN-UL ACESTUIA)
@@ -35,6 +40,7 @@ public class AuthenticationService {
         //sa punem o exceptie custom, totusi, daca chiar intra, va fi prinsa de runtimeexception si va returna ceva generic
         //dar nu se va intampla abasolut niciodat asta.
         var jwtToken = jwtService.generateToken(user); //ii generam token jwt
+        notificationService.sendWelcomeEmail(req.getEmail());
 
         return new AuthenticationResponse(jwtToken); //returnam tokenul.
     }

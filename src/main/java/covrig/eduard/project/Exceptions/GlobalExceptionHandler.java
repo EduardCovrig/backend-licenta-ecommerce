@@ -19,20 +19,19 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND) // Setează statusul HTTP la 404
-    public String handleResourceNotFound(RuntimeException ex)
-    {
-        return ex.getMessage();
-        //mesajul din service, transformat in json si trimis clientului (ex: "Brand not found with id: 123")
+    @ResponseStatus(HttpStatus.NOT_FOUND) // Seteaza statusul HTTP la 404
+    public Map<String, String> handleRuntimeException(RuntimeException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Eroare de procesare");
+        error.put("message", ex.getMessage());
+        return error;
     }
 
 
-
-    // HANDLER PENTRU EROARE 400 (Validarea DTO @Valid)
+    // HANDLER PENTRU EROARE 400 (Validarea DTO @Valid -> @NotNull, @Min etc)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String,String> handleValidationExceptions(
-            MethodArgumentNotValidException ex)
+    public Map<String,String> handleValidationExceptions(MethodArgumentNotValidException ex)
     {
         Map<String,String> errors=new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
@@ -48,9 +47,8 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED) // Returneaza 401
     public Map<String, String> handleAuthenticationException(AuthenticationException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", "Autentificare esuata");
-        error.put("message", "Email sau parola incorecta"); // Mesaj generic pentru securitate, sa nu
-        //divulgam informatii care pot cauza probleme in viitor.
+        error.put("error", "Neautorizat");
+        error.put("message", "Autentificare esuata. Verificati emailul sau parola.");
         return error;
     }
     // 4. HANDLER PENTRU BODY LIPSA la request SAU JSON INVALID

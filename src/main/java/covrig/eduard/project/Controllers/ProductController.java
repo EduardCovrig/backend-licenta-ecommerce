@@ -1,11 +1,13 @@
 package covrig.eduard.project.Controllers;
 
 import covrig.eduard.project.Services.ProductService;
+import covrig.eduard.project.Services.UserInteractionService;
 import covrig.eduard.project.dtos.product.ProductCreationDTO;
 import covrig.eduard.project.dtos.product.ProductResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -20,9 +22,11 @@ import java.util.List;
 public class ProductController {
 
     final private ProductService productService;
+    final private UserInteractionService interactionService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, UserInteractionService interactionService) {
         this.productService = productService;
+        this.interactionService = interactionService;
     }
     //OPERATII DE GET
 
@@ -34,10 +38,13 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable Long id)
+    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable Long id, Authentication authentication)
     {
-        ProductResponseDTO product= productService.getProductById(id);
-        return ResponseEntity.ok(product); //200 OK
+        if (authentication != null) {
+            interactionService.logInteraction(authentication.getName(), id, "VIEW"); //adaugam interactiunea userului,
+            //daca este logat, in tabela lui de interactiuni
+        }
+        return ResponseEntity.ok(productService.getProductById(id));
     }
 
     //GET /api/products/expiring?date=2025-01-01

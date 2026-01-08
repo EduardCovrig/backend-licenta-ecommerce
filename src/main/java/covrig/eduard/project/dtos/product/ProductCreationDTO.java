@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -48,4 +51,7 @@ public class ProductCreationDTO {
 
     @NotNull(message = "ID-ul Categoriei este obligatoriu.")
     private Long categoryId;
+
+    private List<String> imageUrls;
+    private Map<String, String> attributes;
 }
